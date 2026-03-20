@@ -20,13 +20,14 @@ class UnityTestPage(UnityPage):  # derived from UnityQuestionPage
         message: str,
         time_estimate: int,
     ):
-        contents = {
-            "message": message
+        data = {
+            "goal": "This is the goal",
+            "gain": "This is the rule",
         }
         super().__init__(
             title="Unity test",
             resources="/static",
-            contents=contents,  # json.dumps(contents),
+            contents=data,  # json.dumps(contents),
             debug=False,
             time_estimate=time_estimate,
             session_id="1",  # customize it -- trigger for unity to do stuff ; also can use the type
