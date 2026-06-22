@@ -1,7 +1,10 @@
+from markupsafe import Markup
+
 import psynet.experiment
 from psynet.page import InfoPage, UnityPage
 from psynet.timeline import (
-    Timeline, 
+    PageMaker,
+    Timeline,
     join,
 )
 from psynet.trial.static import (
@@ -21,7 +24,9 @@ class UnityTestPage(UnityPage):  # derived from UnityQuestionPage
         time_estimate: int,
     ):
         data = {
-            "coins":"[(10, 10), (20, 20), (30, 10)]"
+            "coins": "[(10, 10), (20, 20), (30, 10)]",
+            "starting_location": "(20, 20)",
+            "initial_fuel_percentage": 50,
         }
 
         super().__init__(
@@ -32,8 +37,13 @@ class UnityTestPage(UnityPage):  # derived from UnityQuestionPage
             time_estimate=time_estimate,
             session_id="1",  # customize it -- trigger for unity to do stuff ; also can use the type
             game_container_width="960px",
-            game_container_height="600px"
+            game_container_height="600px",
+            label="unity_test",
         )
+
+    def format_answer(self, raw_answer, **kwargs):
+        logger.info(f"Unity raw answer: {raw_answer}")
+        return raw_answer
 
     def metadata(self, **kwargs):
         # UnityPage.metadata() sets time_taken=None, which overwrites the client's value in
@@ -52,7 +62,7 @@ class UnityTestTrialMaker(StaticTrialMaker):
 
 class UnityTestTrial(StaticTrial):
     time_estimate = 5
-    accumulate_answers = True
+    accumulate_answers = False
 
     def show_trial(self, experiment, participant):
         return join(
@@ -64,10 +74,17 @@ class UnityTestTrial(StaticTrial):
                 message="Helo world!",
                 time_estimate=10,
             ),
-            # InfoPage(
-            #     f"Here are the coins collected: {self.participant.var.coins_collected}",
-            #     time_estimate=10,
-            # ),
+            PageMaker(
+                lambda participant: InfoPage(
+                    content=Markup(
+                        f"<p>Score: {participant.answer.get('score') if participant.answer else None}</p>"
+                        "<br>"
+                        f"<p>Coins: {participant.answer.get('coins') if participant.answer else None}</p>"
+                    ),
+                    time_estimate=10,
+                ),
+                time_estimate=10,
+            ),
         )
 
 
